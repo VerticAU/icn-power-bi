@@ -3,6 +3,7 @@ const path = require('path')
 const PORT = process.env.PORT || 5000
 const Cipher = require('aes-ecb')
 const Validator = require('jsonschema').Validator
+const Crypto = require('crypto')
 
 var app = express();
 
@@ -15,7 +16,7 @@ app
   .get('/', (req, res) => res.render('pages/index'))
   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
 
-// GET method route
+// GET Encrypt Test Data method route
 app.get('/encrypt-test-data', function (req, res) {
   var data = {};
   data.cardNo = '1234567890123456';
@@ -30,9 +31,40 @@ app.get('/encrypt-test-data', function (req, res) {
   encryptData(req, res);
 });
 
-// POST method route
+// POST Encrypt Data method route
 app.post('/encrypt', function(req, res) {
   encryptData(req, res);
+});
+
+// POST Sign Data method route
+app.post('/sign', function(req, res) {
+  var data = req.body;
+
+  var response = res.body || {};
+
+  console.log('VALIDATE', 'MESSAGE', JSON.stringify(data, null, 2));
+
+  // Validate data using a schema.
+  const v = new Validator();
+  const validationResult = v.validate(data, signSchema);
+
+  response.isValid = (validationResult.errors.length === 0);
+  if (response.isValid !== true) {
+    response.errors = validationResult.errors;
+    res.status(500).json(response);
+    return;
+  }
+
+  var plainText = `MID=${data.MID}&EdiDate=${data.ediDate}&Moid=${data.moid}&MerchantKey=${data.merchantKey}`;
+
+  var hex = crypto
+    .createHash("sha256")
+    .update(plainText)
+    .digest("hex");
+
+    response.signedData = hex;
+
+    res.json(response);
 });
 
 function encryptData(req, res) {
@@ -45,7 +77,7 @@ function encryptData(req, res) {
 
   // Validate data using a schema.
   const v = new Validator();
-  const validationResult = v.validate(data, requestSchema);
+  const validationResult = v.validate(data, encryptSchema);
 
   response.isValid = (validationResult.errors.length === 0);
   if (response.isValid !== true) {
@@ -67,7 +99,22 @@ function encryptData(req, res) {
   res.json(response);
 }
 
-var requestSchema = {
+var signSchema = {
+  "id": "/Request",
+  "type": "object",
+  "properties": {
+      "MID": {"type": "string"},
+      "ediDate": {"type": "string"},
+      "moid": {"type": "string"},
+      "merchantKey": {"type": "string"}
+  },
+  "required": [
+      "cardNo", "expYear", "expMonth", 
+      "idNo", "cardPw", "merchantKey"
+  ]
+};
+
+var encryptSchema = {
   "id": "/Request",
   "type": "object",
   "properties": {
