@@ -62,12 +62,13 @@ app.post('/sign', function(req, res) {
 
   var plainText = `MID=${data.MID}&EdiDate=${data.ediDate}&Moid=${data.moid}&MerchantKey=${data.merchantKey}`;
 
-  var hex = crypto
+  var hex = Crypto
     .createHash("sha256")
     .update(plainText)
     .digest("hex");
 
     response.signedData = hex;
+    response.ediDate = data.ediDate;
 
     res.json(response);
 });
