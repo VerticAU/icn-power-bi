@@ -39,7 +39,7 @@ function encryptData(req, res) {
 
   var data = req.body;
 
-  var response = {};
+  var response = res.body || {};
 
   console.log('VALIDATE', 'MESSAGE', JSON.stringify(data, null, 2));
 
