@@ -7,6 +7,8 @@ const Validator = require('jsonschema').Validator
 var app = express();
 
 app
+  .use(express.json()) // for parsing application/json
+  .use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
   .use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
@@ -15,15 +17,16 @@ app
 
 // GET method route
 app.get('/encrypt-test-data', function (req, res) {
-  var request = {};
-  request.cardNo = '1234567890123456';
-  request.expYear = '25';
-  request.expMonth = '12';
-  request.idNo = '800212';
-  request.cardPw = '12';
-  request.merchantKey = 'TPP4afX4e5US6FEl0MnoyRHT/yzTRZVrKGJVBmew66y8jSDOt5ZNigM0DM/WZdYbev7OV/lTUEewzhq5dqKygg==';
+  var data = {};
+  data.cardNo = '1234567890123456';
+  data.expYear = '25';
+  data.expMonth = '12';
+  data.idNo = '800212';
+  data.cardPw = '12';
+  data.merchantKey = 'TPP4afX4e5US6FEl0MnoyRHT/yzTRZVrKGJVBmew66y8jSDOt5ZNigM0DM/WZdYbev7OV/lTUEewzhq5dqKygg==';
 
-  encryptData(request, res);
+  req.body = data;
+  encryptData(req, res);
 });
 
 // POST method route
@@ -33,31 +36,26 @@ app.post('/encrypt', function(req, res) {
 
 function encryptData(req, res) {
 
+  var data = req.body;
+
   var response = {};
 
   console.log('VALIDATE', 'MESSAGE', JSON.stringify(req, null, 2));
 
   // Validate data using a schema.
   const v = new Validator();
-  const validationResult = v.validate(req, requestSchema);
+  const validationResult = v.validate(data, requestSchema);
 
   response.isValid = (validationResult.errors.length === 0);
   if (response.isValid !== true) {
     response.errors = validationResult.errors;
-    res.status(500).jsonp(response);
+    res.status(500).json(response);
     return;
   }
 
-  var cardNo = '1234567890123456';
-  var expYear = '25';
-  var expMonth = '12';
-  var idNo = '800212';
-  var cardPw = '12';
-  var merchantKey = 'TPP4afX4e5US6FEl0MnoyRHT/yzTRZVrKGJVBmew66y8jSDOt5ZNigM0DM/WZdYbev7OV/lTUEewzhq5dqKygg==';
+  var keyString = data.merchantKey.substr(0, 16);
 
-  var keyString = merchantKey.substr(0, 16);
-
-  var plainText = `CardNo=${cardNo}&ExpYear=${expYear}&ExpMonth=${expMonth}&IDNo=${idNo}&CardPw=${cardPw}`;
+  var plainText = `CardNo=${data.cardNo}&ExpYear=${data.expYear}&ExpMonth=${data.expMonth}&IDNo=${data.idNo}&CardPw=${data.cardPw}`;
 
   var encrypted = Cipher.encrypt(keyString, encodeURI(plainText));
 
