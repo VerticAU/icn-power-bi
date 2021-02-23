@@ -4,6 +4,7 @@ const PORT = process.env.PORT || 5000
 const Cipher = require('aes-ecb')
 const Validator = require('jsonschema').Validator
 const Crypto = require('crypto')
+const dateFormat = require('dateformat')
 
 var app = express();
 
@@ -53,6 +54,10 @@ app.post('/sign', function(req, res) {
     response.errors = validationResult.errors;
     res.status(500).json(response);
     return;
+  }
+
+  if (!data.ediDate) {
+    data.ediDate = dateFormat(new Date(), 'yyyymmddhhMMss');
   }
 
   var plainText = `MID=${data.MID}&EdiDate=${data.ediDate}&Moid=${data.moid}&MerchantKey=${data.merchantKey}`;
@@ -109,8 +114,7 @@ var signSchema = {
       "merchantKey": {"type": "string"}
   },
   "required": [
-      "cardNo", "expYear", "expMonth", 
-      "idNo", "cardPw", "merchantKey"
+      "MID", "moid", "merchantKey"
   ]
 };
 
