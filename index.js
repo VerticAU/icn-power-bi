@@ -41,7 +41,7 @@ function encryptData(req, res) {
 
   var response = {};
 
-  console.log('VALIDATE', 'MESSAGE', JSON.stringify(req, null, 2));
+  console.log('VALIDATE', 'MESSAGE', JSON.stringify(data, null, 2));
 
   // Validate data using a schema.
   const v = new Validator();
