@@ -61,7 +61,7 @@ app.post('/sign', function(req, res) {
     data.ediDate = dateFormat(new Date(), 'UTC:yyyymmddhhMMss');
   }
 
-  var plainText = `MID=${data.MID}&EdiDate=${data.ediDate}&Moid=${data.moid}&MerchantKey=${data.merchantKey}`;
+  var plainText = `${data.MID}${data.ediDate}${data.moid}${data.merchantKey}`;
 
   var hex = Crypto
     .createHash("sha256")
