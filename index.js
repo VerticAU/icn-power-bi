@@ -26,6 +26,7 @@ app.get('/encrypt-test-data', function (req, res) {
   data.idNo = '800212';
   data.cardPw = '12';
   data.merchantKey = 'TPP4afX4e5US6FEl0MnoyRHT/yzTRZVrKGJVBmew66y8jSDOt5ZNigM0DM/WZdYbev7OV/lTUEewzhq5dqKygg==';
+  data.ediDate = dateFormat(new Date(), 'UTC:yyyymmddhhMMss');
 
   req.body = data;
   res.body = data;
