@@ -1,7 +1,7 @@
 {
-  "name": "node-js-getting-started",
+  "name": "heroku-nicepay",
   "version": "0.3.0",
-  "description": "A sample Node.js app using Express 4",
+  "description": "NicePay Encryption functionality.",
   "engines": {
     "node": "14.x"
   },
@@ -14,6 +14,7 @@
     "aes-ecb": "^1.3.10",
     "amrhextotext": "^1.1.1",
     "dateformat": "^4.5.1",
+    "dotenv": "^8.2.0",
     "ejs": "^3.1.5",
     "express": "^4.15.2",
     "jsonschema": "^1.4.0"

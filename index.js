@@ -1,3 +1,6 @@
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
@@ -19,6 +22,7 @@ app
 
 // GET Encrypt Test Data method route
 app.get('/encrypt-test-data', function (req, res) {
+
   var data = {};
   data.cardNo = '1234567890123456';
   data.expYear = '25';
@@ -28,7 +32,9 @@ app.get('/encrypt-test-data', function (req, res) {
   data.merchantKey = 'TPP4afX4e5US6FEl0MnoyRHT/yzTRZVrKGJVBmew66y8jSDOt5ZNigM0DM/WZdYbev7OV/lTUEewzhq5dqKygg==';
   data.ediDate = dateFormat(new Date(), 'UTC:yyyymmddhhMMss');
 
-  req.body = data;
+  req.body = {
+    encryptedData: encryptString(JSON.stringify(data))
+  };
   res.body = data;
   encryptData(req, res);
 });
@@ -78,6 +84,15 @@ function encryptData(req, res) {
 
   var data = req.body;
 
+  if (data.encryptedData) {
+    try {
+      data = JSON.parse(decryptString(data.encryptedData));
+    } catch(ex) {
+      console.log('DECRYPT', 'DATA', JSON.stringify(data, null, 2));
+      console.log('DECRYPT', 'ERROR', JSON.stringify(ex, null, 2));
+    }
+  }
+
   var response = res.body || {};
 
   console.log('VALIDATE', 'MESSAGE', JSON.stringify(data, null, 2));
@@ -104,6 +119,37 @@ function encryptData(req, res) {
   response.encryptedData = hex;
 
   res.json(response);
+}
+
+function encryptString(clearText) {
+  var KEY = Buffer.from(process.env.CRYPTO_KEY, 'base64')
+
+  var encryptedText = null;
+
+  var textBuffer = Buffer.from(clearText, 'utf-8');
+  var iv = Crypto.randomBytes(16);
+
+  var cipher = Crypto.createCipheriv('aes-256-cbc', KEY, iv);
+  var encryptedBuffer = cipher.update(textBuffer);
+  encryptedText = Buffer.concat([iv, encryptedBuffer, cipher.final()]).toString('base64');
+
+  return encryptedText;   
+}
+
+function decryptString(encryptedText) {
+  var KEY = Buffer.from(process.env.CRYPTO_KEY, 'base64')
+
+  var clearText = null;
+
+  var encryptedBlob = Buffer.from(encryptedText, 'base64');
+  var iv = encryptedBlob.slice(0, 16);
+  var textBuffer = encryptedBlob.toString('base64', 16);
+
+  var decipher = Crypto.createDecipheriv('aes-256-cbc', KEY, iv);
+  clearText = decipher.update(textBuffer,'base64','utf-8');
+  clearText += decipher.final('utf-8'); 
+   
+  return clearText;
 }
 
 var signSchema = {

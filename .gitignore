@@ -1,0 +1,19 @@
+# Local Environment Variables
+.env
+
+# Dependency directory
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
+node_modules
+
+# Mac files
+.DS_Store
+
+lib/*
+
+site/
+
+# package directories
+jspm_packages
+
+# Serverless directories
+.serverless
