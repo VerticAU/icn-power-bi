@@ -50,8 +50,6 @@ app.post('/sign', function(req, res) {
 
   var response = res.body || {};
 
-  console.log('VALIDATE', 'MESSAGE', JSON.stringify(data, null, 2));
-
   // Validate data using a schema.
   const v = new Validator();
   const validationResult = v.validate(data, signSchema);
@@ -88,14 +86,11 @@ function encryptData(req, res) {
     try {
       data = JSON.parse(decryptString(data.encryptedData));
     } catch(ex) {
-      console.log('DECRYPT', 'DATA', JSON.stringify(data, null, 2));
       console.log('DECRYPT', 'ERROR', JSON.stringify(ex, null, 2));
     }
   }
 
   var response = res.body || {};
-
-  console.log('VALIDATE', 'MESSAGE', JSON.stringify(data, null, 2));
 
   // Validate data using a schema.
   const v = new Validator();
