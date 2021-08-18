@@ -78,6 +78,58 @@ app.post('/sign', function(req, res) {
     res.json(response);
 });
 
+// POST Proof of Consent Registration method route
+app.post('/consent', function(req, res) {
+  var data = req.body;
+
+  var response = res.body || {};
+
+  // // Validate data using a schema.
+  // const v = new Validator();
+  // const validationResult = v.validate(data, signSchema);
+
+  // response.isValid = (validationResult.errors.length === 0);
+  // if (response.isValid !== true) {
+  //   response.errors = validationResult.errors;
+  //   res.status(500).json(response);
+  //   return;
+  // }
+
+  // if (!data.ediDate) {
+  //   data.ediDate = dateFormat(new Date(), 'UTC:yyyymmddhhMMss');
+  // }
+
+  // var plainText = `${data.MID}${data.ediDate}${data.moid}${data.merchantKey}`;
+
+  // var hex = Crypto
+  //   .createHash("sha256")
+  //   .update(plainText)
+  //   .digest("hex");
+
+  //   response.signedData = hex;
+  //   response.ediDate = data.ediDate;
+
+    var request = require('request');
+    var FormData = require('form-data');  
+
+    var form = new FormData();
+    form.append("fileext", "mp3");
+    form.append("agreetype", "4");
+    form.append("filename", fs.createReadStream('https://cxo.eex.cx/35a08fd97ec41ec26a5212072f5e4ec6/tVCUAXOBF7w/uiwcucwcacwear'));
+
+    form.getLength(function(err, length){
+      if (err) {
+        res.json(err);
+      }
+
+      var r = request.post("https://rest-test.thebill.co.kr:7080/thebill/retailers/39000492/members/pY5FMqPQnrSv4EjFBwcg/agree", function(err, response, body) {
+        res.json(body);
+      });
+      r._form = form;     
+      r.setHeader('content-length', length);
+    });
+});
+
 function encryptData(req, res) {
 
   var data = req.body;
