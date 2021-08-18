@@ -18,7 +18,10 @@
     "ejs": "^3.1.5",
     "express": "^4.15.2",
     "form-data": "^4.0.0",
+    "fs": "0.0.1-security",
+    "http": "0.0.1-security",
     "jsonschema": "^1.4.0",
+    "node-fetch": "^2.6.1",
     "request": "^2.88.2"
   },
   "devDependencies": {

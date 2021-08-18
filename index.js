@@ -8,6 +8,12 @@ const Cipher = require('aes-ecb')
 const Validator = require('jsonschema').Validator
 const Crypto = require('crypto')
 const dateFormat = require('dateformat')
+const fs = require('fs');
+const request = require('request');
+const FormData = require('form-data');  
+const fetch   = require('node-fetch');
+var http = require('http');
+
 
 var app = express();
 
@@ -109,25 +115,49 @@ app.post('/consent', function(req, res) {
   //   response.signedData = hex;
   //   response.ediDate = data.ediDate;
 
-    var request = require('request');
-    var FormData = require('form-data');  
+    // fetch('https://cxo.eex.cx/35a08fd97ec41ec26a5212072f5e4ec6/tVCUAXOBF7w/uiwcucwcacwear').then(data => {
+      // var form = new FormData();
+      // form.append("fileext", "mp3");
+      // form.append("agreetype", "4");
+      // form.append("filename", 'test', {
+      //   header: {
+      //     'Content-Type': 'audio/mpeg'
+      //   }
+      // });
+      // res.json(form.getBuffer().toString('utf8'));
+  
+      // form.getLength(function(err, length){
+        // if (err) {
+          // res.json(err);
+        // }
+  
+        var r = request.post("https://rest-test.thebill.co.kr:7080/thebill/retailers/39000492/members/pY5FMqPQnrSv4EjFBwcg/agree", function(err, response, body) {
+          res.json(body);
+        });
+        const form = r.form();
+        form.append("fileext", "mp3");
+        form.append("agreetype", "4");
+        form.append("filename", 'test', {
+          filename: 'test.mp3',
+          header: {
+            'Content-Type': 'audio/mpeg'
+          }
+        });
+  
+        // r._form = form;
+        r.setHeader('Connection', 'keep-alive');
+        r.setHeader('Accept', '*/*');
+        // r.setHeader('Content-Length', length);
+        r.setHeader('Cache-Control', 'no-cache');
+        r.setHeader('Api-Key', 'pCVoeEfFUxxQpRUNtGXTOILfKiMvcSm1yI1GWuaIeuw=');
+        r.setHeader('Service-Type', 'B');
+      // });
+    // })
+    // .catch(err => {
+    //     res.send(err);
+    // });
 
-    var form = new FormData();
-    form.append("fileext", "mp3");
-    form.append("agreetype", "4");
-    form.append("filename", fs.createReadStream('https://cxo.eex.cx/35a08fd97ec41ec26a5212072f5e4ec6/tVCUAXOBF7w/uiwcucwcacwear'));
-
-    form.getLength(function(err, length){
-      if (err) {
-        res.json(err);
-      }
-
-      var r = request.post("https://rest-test.thebill.co.kr:7080/thebill/retailers/39000492/members/pY5FMqPQnrSv4EjFBwcg/agree", function(err, response, body) {
-        res.json(body);
-      });
-      r._form = form;     
-      r.setHeader('content-length', length);
-    });
+  
 });
 
 function encryptData(req, res) {
