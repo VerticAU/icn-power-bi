@@ -85,79 +85,106 @@ app.post('/sign', function(req, res) {
 });
 
 // POST Proof of Consent Registration method route
-app.post('/consent', function(req, res) {
-  var data = req.body;
+app.post('/consent', async function(req, res) {
+  try {  
 
-  var response = res.body || {};
+    var data = req.body;
 
-  // // Validate data using a schema.
-  // const v = new Validator();
-  // const validationResult = v.validate(data, signSchema);
+    var response = res.body || {};
 
-  // response.isValid = (validationResult.errors.length === 0);
-  // if (response.isValid !== true) {
-  //   response.errors = validationResult.errors;
-  //   res.status(500).json(response);
-  //   return;
-  // }
+    // Validate data using a schema.
+    const v = new Validator();
+    const validationResult = v.validate(data, consentSchema);
 
-  // if (!data.ediDate) {
-  //   data.ediDate = dateFormat(new Date(), 'UTC:yyyymmddhhMMss');
-  // }
+    response.isValid = (validationResult.errors.length === 0);
+    if (response.isValid !== true) {
+      response.errors = validationResult.errors;
+      res.status(500).json(response);
+      return;
+    }
 
-  // var plainText = `${data.MID}${data.ediDate}${data.moid}${data.merchantKey}`;
+      // if (!data.ediDate) {
+      //   data.ediDate = dateFormat(new Date(), 'UTC:yyyymmddhhMMss');
+      // }
 
-  // var hex = Crypto
-  //   .createHash("sha256")
-  //   .update(plainText)
-  //   .digest("hex");
+      // var plainText = `${data.MID}${data.ediDate}${data.moid}${data.merchantKey}`;
 
-  //   response.signedData = hex;
-  //   response.ediDate = data.ediDate;
+      // var hex = Crypto
+      //   .createHash("sha256")
+      //   .update(plainText)
+      //   .digest("hex");
 
-    // fetch('https://cxo.eex.cx/35a08fd97ec41ec26a5212072f5e4ec6/tVCUAXOBF7w/uiwcucwcacwear').then(data => {
-      // var form = new FormData();
-      // form.append("fileext", "mp3");
-      // form.append("agreetype", "4");
-      // form.append("filename", 'test', {
-      //   header: {
-      //     'Content-Type': 'audio/mpeg'
-      //   }
+      //   response.signedData = hex;
+      //   response.ediDate = data.ediDate;
+
+      // fetch('https://cxo.eex.cx/35a08fd97ec41ec26a5212072f5e4ec6/tVCUAXOBF7w/uiwcucwcacwear').then(data => {
+        // var form = new FormData();
+        // form.append("fileext", "mp3");
+        // form.append("agreetype", "4");
+        // form.append("filename", 'test', {
+        //   header: {
+        //     'Content-Type': 'audio/mpeg'
+        //   }
+        // });
+        // res.json(form.getBuffer().toString('utf8'));
+    
+        // form.getLength(function(err, length){
+          // if (err) {
+            // res.json(err);
+          // }
+
+      var form = new FormData();
+      form.append("fileext", data.fileext);
+      form.append("agreetype", data.agreetype);
+      form.append("filename", data.base64data, {
+        filename: data.filename,
+        header: { 
+          'Content-Type': data.contentType || 'audio/mpeg'
+        }
+      });
+
+      request.post({
+        url: data.endpoint,
+        headers: {
+          'Connection': 'keep-alive',
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache',
+          'Api-Key': req.get('Api-Key'),
+          'Service-Type': req.get('Service-Type'),
+        },
+        formData: form
+      }, function(err, response, body) {
+        res.status(response.statusCode).json(body);
+      });
+    
+          // var r = request.post(data.endpoint, function(err, response, body) {
+          //   res.status(response.statusCode).json(body);
+          // });
+          // const form = r.form();
+          // form.append("fileext", data.fileext);
+          // form.append("agreetype", data.agreetype);
+          // form.append("filename", data.base64data, {
+          //   filename: data.filename,
+          //   header: { 
+          //     'Content-Type': data.contentType || 'audio/mpeg'
+          //   }
+          // });
+    
+          // // r._form = form;
+          // r.setHeader('Connection', 'keep-alive');
+          // r.setHeader('Accept', '*/*');
+          // // r.setHeader('Content-Length', length);
+          // r.setHeader('Cache-Control', 'no-cache');
+          // r.setHeader('Api-Key', req.get('Api-Key'));
+          // r.setHeader('Service-Type', req.get('Service-Type'));
+        // });
+      // })
+      // .catch(err => {
+      //     res.send(err);
       // });
-      // res.json(form.getBuffer().toString('utf8'));
-  
-      // form.getLength(function(err, length){
-        // if (err) {
-          // res.json(err);
-        // }
-  
-        var r = request.post(data.endpoint, function(err, response, body) {
-          res.json(body);
-        });
-        const form = r.form();
-        form.append("fileext", data.fileext);
-        form.append("agreetype", data.agreetype);
-        form.append("filename", data.base64data, {
-          filename: data.filename,
-          header: { 
-            'Content-Type': data.contentType || 'audio/mpeg'
-          }
-        });
-  
-        // r._form = form;
-        r.setHeader('Connection', 'keep-alive');
-        r.setHeader('Accept', '*/*');
-        // r.setHeader('Content-Length', length);
-        r.setHeader('Cache-Control', 'no-cache');
-        r.setHeader('Api-Key', req.get('Api-Key'));
-        r.setHeader('Service-Type', req.get('Service-Type'));
-      // });
-    // })
-    // .catch(err => {
-    //     res.send(err);
-    // });
-
-  
+  } catch (e) {
+    res.status(500).send(e.message || e.toString());
+  }
 });
 
 function encryptData(req, res) {
@@ -257,5 +284,20 @@ var encryptSchema = {
   "required": [
       "cardNo", "expYear", "expMonth", 
       "idNo", "cardPw", "merchantKey"
+  ]
+};
+
+var consentSchema = {
+  "id": "/Request",
+  "type": "object",
+  "properties": {
+      "agreetype": {"type": "string"},
+      "fileext": {"type": "string"},
+      "filename": {"type": "string"},
+      "endpoint": {"type": "string"},
+      "base64data": {"type": "string"}
+  },
+  "required": [
+      "agreetype", "fileext", "filename", "endpoint", "base64data"
   ]
 };
