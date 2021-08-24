@@ -86,7 +86,7 @@ app.post('/sign', function(req, res) {
 
 // POST Proof of Consent Registration method route
 app.post('/consent', async function(req, res) {
-  try {  
+  // try {  
 
     var data = req.body;
 
@@ -99,8 +99,8 @@ app.post('/consent', async function(req, res) {
     let isValid = (validationResult.errors.length === 0);
     if (isValid !== true) {
       // response.errors = validationResult.errors;
-      // res.status(500).json({resultMsg: validationResult.errors[0].message});
-      res.status(500).json(req.body);
+      res.status(500).json({resultMsg: validationResult.errors[0].message});
+      // res.status(500).json(req.body);
       return;
     }
 
@@ -137,12 +137,13 @@ app.post('/consent', async function(req, res) {
       var form = new FormData();
       form.append("fileext", data.fileext);
       form.append("agreetype", data.agreetype);
-      form.append("filename", data.base64data, {
-        filename: data.filename,
-        header: { 
-          'Content-Type': data.contentType || 'audio/mpeg'
-        }
-      });
+      form.append("filename", data.base64data, data.filename);
+      // form.append("filename", data.base64data, {
+      //   filename: data.filename,
+      //   header: { 
+      //     'Content-Type': data.contentType || 'audio/mpeg'
+      //   }
+      // });
 
       request.post({
         url: data.endpoint,
@@ -183,10 +184,10 @@ app.post('/consent', async function(req, res) {
       // .catch(err => {
       //     res.send(err);
       // });
-  } catch (e) {
-    res.status(500).json({resultMsg: e.toString()});
-    // res.status(500).json({resultMsg: e.message || e.toString()});
-  }
+  // } catch (e) {
+  //   res.status(500).json({resultMsg: e.toString()});
+  //   // res.status(500).json({resultMsg: e.message || e.toString()});
+  // }
 });
 
 function encryptData(req, res) {
