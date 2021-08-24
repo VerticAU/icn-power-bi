@@ -134,10 +134,12 @@ app.post('/consent', async function(req, res) {
             // res.json(err);
           // }
 
-      var form = new FormData();
-      form.append("fileext", data.fileext);
-      form.append("agreetype", data.agreetype);
-      form.append("filename", data.base64data, data.filename);
+          console.log(JSON.stringify(data));
+
+      // var form = new FormData();
+      // form.append("fileext", data.fileext);
+      // form.append("agreetype", data.agreetype);
+      // // form.append("filename", data.base64data, data.filename);
       // form.append("filename", data.base64data, {
       //   filename: data.filename,
       //   header: { 
@@ -154,7 +156,17 @@ app.post('/consent', async function(req, res) {
           'Api-Key': req.get('Api-Key'),
           'Service-Type': req.get('Service-Type'),
         },
-        formData: form
+        formData: {
+          fileext: data.fileext,
+          agreetype: data.agreetype,
+          filename: {
+            value: data.base64data,
+            options: {
+              filename: data.filename,
+              contentType: data.contentType || 'audio/mpeg'
+            }
+          }
+        }
       }, function(err, response, body) {
         res.status(response.statusCode).json(body);
       });
