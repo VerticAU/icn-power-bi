@@ -99,7 +99,7 @@ app.post('/consent', async function(req, res) {
     let isValid = (validationResult.errors.length === 0);
     if (isValid !== true) {
       // response.errors = validationResult.errors;
-      res.status(500).send(validationResult.errors[0].message);
+      res.status(500).json({resultMsg: validationResult.errors[0].message});
       return;
     }
 
