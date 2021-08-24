@@ -131,16 +131,16 @@ app.post('/consent', function(req, res) {
           // res.json(err);
         // }
   
-        var r = request.post("https://rest-test.thebill.co.kr:7080/thebill/retailers/39000492/members/pY5FMqPQnrSv4EjFBwcg/agree", function(err, response, body) {
+        var r = request.post(data.endpoint, function(err, response, body) {
           res.json(body);
         });
         const form = r.form();
-        form.append("fileext", "mp3");
-        form.append("agreetype", "4");
-        form.append("filename", 'test', {
-          filename: 'test.mp3',
-          header: {
-            'Content-Type': 'audio/mpeg'
+        form.append("fileext", data.fileext);
+        form.append("agreetype", data.agreetype);
+        form.append("filename", data.base64data, {
+          filename: data.filename,
+          header: { 
+            'Content-Type': data.contentType || 'audio/mpeg'
           }
         });
   
@@ -149,8 +149,8 @@ app.post('/consent', function(req, res) {
         r.setHeader('Accept', '*/*');
         // r.setHeader('Content-Length', length);
         r.setHeader('Cache-Control', 'no-cache');
-        r.setHeader('Api-Key', 'pCVoeEfFUxxQpRUNtGXTOILfKiMvcSm1yI1GWuaIeuw=');
-        r.setHeader('Service-Type', 'B');
+        r.setHeader('Api-Key', req.get('Api-Key'));
+        r.setHeader('Service-Type', req.get('Service-Type'));
       // });
     // })
     // .catch(err => {
