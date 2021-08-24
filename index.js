@@ -166,7 +166,7 @@ app.post('/consent', async function(req, res) {
           }
         }
       }, function(err, response, body) {
-        res.status(response.statusCode).json(body);
+        res.status(response.statusCode).json(JSON.parse(body));
       });
     
           // var r = request.post(data.endpoint, function(err, response, body) {
