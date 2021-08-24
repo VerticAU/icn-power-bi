@@ -134,8 +134,6 @@ app.post('/consent', async function(req, res) {
             // res.json(err);
           // }
 
-          console.log(JSON.stringify(data));
-
       // var form = new FormData();
       // form.append("fileext", data.fileext);
       // form.append("agreetype", data.agreetype);
