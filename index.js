@@ -184,7 +184,8 @@ app.post('/consent', async function(req, res) {
       //     res.send(err);
       // });
   } catch (e) {
-    res.status(500).send(e.message || e.toString());
+    res.status(500).json({resultMsg: 'some error'});
+    // res.status(500).send(e.message || e.toString());
   }
 });
 
