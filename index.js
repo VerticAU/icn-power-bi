@@ -86,118 +86,41 @@ app.post('/sign', function(req, res) {
 
 // POST Proof of Consent Registration method route
 app.post('/consent', async function(req, res) {
-  // try {  
+  var data = req.body;
 
-    var data = req.body;
+  // Validate data using a schema.
+  const v = new Validator();
+  const validationResult = v.validate(data, consentSchema);
 
-    // var response = res.body || {};
+  let isValid = (validationResult.errors.length === 0);
+  if (isValid !== true) {
+    res.status(500).json({resultMsg: validationResult.errors[0].message});
+    return;
+  }
 
-    // Validate data using a schema.
-    const v = new Validator();
-    const validationResult = v.validate(data, consentSchema);
-
-    let isValid = (validationResult.errors.length === 0);
-    if (isValid !== true) {
-      // response.errors = validationResult.errors;
-      res.status(500).json({resultMsg: validationResult.errors[0].message});
-      // res.status(500).json(req.body);
-      return;
-    }
-
-      // if (!data.ediDate) {
-      //   data.ediDate = dateFormat(new Date(), 'UTC:yyyymmddhhMMss');
-      // }
-
-      // var plainText = `${data.MID}${data.ediDate}${data.moid}${data.merchantKey}`;
-
-      // var hex = Crypto
-      //   .createHash("sha256")
-      //   .update(plainText)
-      //   .digest("hex");
-
-      //   response.signedData = hex;
-      //   response.ediDate = data.ediDate;
-
-      // fetch('https://cxo.eex.cx/35a08fd97ec41ec26a5212072f5e4ec6/tVCUAXOBF7w/uiwcucwcacwear').then(data => {
-        // var form = new FormData();
-        // form.append("fileext", "mp3");
-        // form.append("agreetype", "4");
-        // form.append("filename", 'test', {
-        //   header: {
-        //     'Content-Type': 'audio/mpeg'
-        //   }
-        // });
-        // res.json(form.getBuffer().toString('utf8'));
-    
-        // form.getLength(function(err, length){
-          // if (err) {
-            // res.json(err);
-          // }
-
-      // var form = new FormData();
-      // form.append("fileext", data.fileext);
-      // form.append("agreetype", data.agreetype);
-      // // form.append("filename", data.base64data, data.filename);
-      // form.append("filename", data.base64data, {
-      //   filename: data.filename,
-      //   header: { 
-      //     'Content-Type': data.contentType || 'audio/mpeg'
-      //   }
-      // });
-
-      request.post({
-        url: data.endpoint,
-        headers: {
-          'Connection': 'keep-alive',
-          'Accept': '*/*',
-          'Cache-Control': 'no-cache',
-          'Api-Key': req.get('Api-Key'),
-          'Service-Type': req.get('Service-Type'),
-        },
-        formData: {
-          fileext: data.fileext,
-          agreetype: data.agreetype,
-          filename: {
-            value: data.base64data,
-            options: {
-              filename: data.filename,
-              contentType: data.contentType || 'audio/mpeg'
-            }
+    request.post({
+      url: data.endpoint,
+      headers: {
+        'Connection': 'keep-alive',
+        'Accept': '*/*',
+        'Cache-Control': 'no-cache',
+        'Api-Key': req.get('Api-Key'),
+        'Service-Type': req.get('Service-Type'),
+      },
+      formData: {
+        fileext: data.fileext,
+        agreetype: data.agreetype,
+        filename: {
+          value: data.base64data,
+          options: {
+            filename: data.filename,
+            contentType: data.contentType || 'audio/mpeg'
           }
         }
-      }, function(err, response, body) {
-        res.status(response.statusCode).json(JSON.parse(body));
-      });
-    
-          // var r = request.post(data.endpoint, function(err, response, body) {
-          //   res.status(response.statusCode).json(body);
-          // });
-          // const form = r.form();
-          // form.append("fileext", data.fileext);
-          // form.append("agreetype", data.agreetype);
-          // form.append("filename", data.base64data, {
-          //   filename: data.filename,
-          //   header: { 
-          //     'Content-Type': data.contentType || 'audio/mpeg'
-          //   }
-          // });
-    
-          // // r._form = form;
-          // r.setHeader('Connection', 'keep-alive');
-          // r.setHeader('Accept', '*/*');
-          // // r.setHeader('Content-Length', length);
-          // r.setHeader('Cache-Control', 'no-cache');
-          // r.setHeader('Api-Key', req.get('Api-Key'));
-          // r.setHeader('Service-Type', req.get('Service-Type'));
-        // });
-      // })
-      // .catch(err => {
-      //     res.send(err);
-      // });
-  // } catch (e) {
-  //   res.status(500).json({resultMsg: e.toString()});
-  //   // res.status(500).json({resultMsg: e.message || e.toString()});
-  // }
+      }
+    }, function(err, response, body) {
+      res.status(response.statusCode).json(JSON.parse(body));
+    });
 });
 
 function encryptData(req, res) {
