@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const express = require('express')
+const bodyParser = require('body-parser')
 const path = require('path')
 const PORT = process.env.PORT || 5000
 const Cipher = require('aes-ecb')
@@ -21,7 +22,7 @@ app
   .use(express.json()) // for parsing application/json
   .use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
   .use(express.static(path.join(__dirname, 'public')))
-  .use(express.bodyParser({limit: '50mb'}))
+  .use(bodyParser.json({limit: '50mb'}))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
   .get('/', (req, res) => res.render('pages/index'))
