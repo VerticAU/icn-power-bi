@@ -21,10 +21,12 @@ app
   .use(express.json()) // for parsing application/json
   .use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
   .use(express.static(path.join(__dirname, 'public')))
+  .use(express.bodyParser({limit: '50mb'}))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
   .get('/', (req, res) => res.render('pages/index'))
   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
+  
 
 // GET Encrypt Test Data method route
 app.get('/encrypt-test-data', function (req, res) {
