@@ -19,13 +19,13 @@ var http = require('http');
 var app = express();
 
 app
-  .use(express.json()) // for parsing application/json
-  .use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
-  .use(express.static(path.join(__dirname, 'public')))
+  // .use(express.json()) // for parsing application/json
+  // .use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+  // .use(express.static(path.join(__dirname, 'public')))
   .use(bodyParser.json({limit: '50mb'}))
-  .set('views', path.join(__dirname, 'views'))
-  .set('view engine', 'ejs')
-  .get('/', (req, res) => res.render('pages/index'))
+  // .set('views', path.join(__dirname, 'views'))
+  // .set('view engine', 'ejs')
+  // .get('/', (req, res) => res.render('pages/index'))
   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
   
 
