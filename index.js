@@ -53,14 +53,14 @@ app.post('/azure', function(req, res) {
       else {
         client
             .query(data.query)
-            .then(() => {
-                console.log('Table created successfully!');
+            .then(result => {
+              res.status(200).json({success: true, resultMsg: result});
+              console.log('Table created successfully!');
                 client.end(console.log('Closed client connection'));
             })
             .catch(err => res.status(500).json({resultMsg: err}))
             .then(() => {
                 console.log('Finished execution, exiting now');
-                res.status(200).json({success: true});
                 process.exit();
             });
       }
