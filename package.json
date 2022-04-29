@@ -1,7 +1,7 @@
 {
-  "name": "heroku-nicepay",
+  "name": "icn-power-bi",
   "version": "0.3.0",
-  "description": "NicePay Encryption functionality.",
+  "description": "ICN SF and Azure integration  .",
   "engines": {
     "node": "14.x"
   },
@@ -23,6 +23,7 @@
     "http": "0.0.1-security",
     "jsonschema": "^1.4.0",
     "node-fetch": "^2.6.1",
+    "pg": "^8.7.3",
     "request": "^2.88.2"
   },
   "devDependencies": {

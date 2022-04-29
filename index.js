@@ -3,17 +3,9 @@ dotenv.config();
 
 const express = require('express')
 const bodyParser = require('body-parser')
-const path = require('path')
 const PORT = process.env.PORT || 5000
-const Cipher = require('aes-ecb')
 const Validator = require('jsonschema').Validator
-const Crypto = require('crypto')
-const dateFormat = require('dateformat')
-const fs = require('fs');
-const request = require('request');
-const FormData = require('form-data');  
-const fetch   = require('node-fetch');
-var http = require('http');
+const pg = require('pg');
 
 
 var app = express();
@@ -28,215 +20,64 @@ app
   // .get('/', (req, res) => res.render('pages/index'))
   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
   
+// POST Azure method route
+app.post('/azure', function(req, res) {
+  var data = req.body;
 
-// GET Encrypt Test Data method route
-app.get('/encrypt-test-data', function (req, res) {
+  var response = res.body || {};
 
-  var data = {};
-  data.cardNo = '1234567890123456';
-  data.expYear = '25';
-  data.expMonth = '12';
-  data.idNo = '800212';
-  data.cardPw = '12';
-  data.merchantKey = 'TPP4afX4e5US6FEl0MnoyRHT/yzTRZVrKGJVBmew66y8jSDOt5ZNigM0DM/WZdYbev7OV/lTUEewzhq5dqKygg==';
-  data.ediDate = dateFormat(new Date(), 'UTC:yyyymmddhhMMss');
+  // Validate data using a schema.
+  const v = new Validator();
+  const validationResult = v.validate(data, azureSchema);
 
-  req.body = {
-    encryptedData: encryptString(JSON.stringify(data))
+  response.isValid = (validationResult.errors.length === 0);
+  if (response.isValid !== true) {
+    response.errors = validationResult.errors;
+    res.status(500).json(response);
+    return;
+  }
+
+  const config = {
+      host: `${data.serverName}.postgres.database.azure.com`,
+      user: data.username,     
+      password: data.password,
+      database: data.nameOfDB,
+      port: 5432,
+      ssl: true
   };
-  res.body = data;
-  encryptData(req, res);
-});
 
-// POST Encrypt Data method route
-app.post('/encrypt', function(req, res) {
-  encryptData(req, res);
-});
+  const client = new pg.Client(config);
 
-// POST Sign Data method route
-app.post('/sign', function(req, res) {
-  var data = req.body;
-
-  var response = res.body || {};
-
-  // Validate data using a schema.
-  const v = new Validator();
-  const validationResult = v.validate(data, signSchema);
-
-  response.isValid = (validationResult.errors.length === 0);
-  if (response.isValid !== true) {
-    response.errors = validationResult.errors;
-    res.status(500).json(response);
-    return;
-  }
-
-  if (!data.ediDate) {
-    data.ediDate = dateFormat(new Date(), 'UTC:yyyymmddhhMMss');
-  }
-
-  var plainText = `${data.MID}${data.ediDate}${data.moid}${data.merchantKey}`;
-
-  var hex = Crypto
-    .createHash("sha256")
-    .update(plainText)
-    .digest("hex");
-
-    response.signedData = hex;
-    response.ediDate = data.ediDate;
-
-    res.json(response);
-});
-
-// POST Proof of Consent Registration method route
-app.post('/consent', async function(req, res) {
-  var data = req.body;
-
-  // Validate data using a schema.
-  const v = new Validator();
-  const validationResult = v.validate(data, consentSchema);
-
-  let isValid = (validationResult.errors.length === 0);
-  if (isValid !== true) {
-    res.status(500).json({resultMsg: validationResult.errors[0].message});
-    return;
-  }
-
-    request.post({
-      url: data.endpoint,
-      headers: {
-        'Connection': 'keep-alive',
-        'Accept': '*/*',
-        'Cache-Control': 'no-cache',
-        'Api-Key': req.get('Api-Key'),
-        'Service-Type': req.get('Service-Type'),
-      },
-      formData: {
-        fileext: data.fileext,
-        agreetype: data.agreetype,
-        filename: {
-          value: data.base64data,
-          options: {
-            filename: data.filename,
-            contentType: data.contentType || 'audio/mpeg'
-          }
-        }
+  client.connect(err => {
+      if (err) res.status(500).json({resultMsg: err});
+      else {
+        client
+            .query(data.query)
+            .then(() => {
+                console.log('Table created successfully!');
+                client.end(console.log('Closed client connection'));
+            })
+            .catch(err => res.status(500).json({resultMsg: err}))
+            .then(() => {
+                console.log('Finished execution, exiting now');
+                res.status(200).json({success: true});
+                process.exit();
+            });
       }
-    }, function(err, response, body) {
-      res.status(response.statusCode).json(JSON.parse(body));
-    });
+  });
 });
 
-function encryptData(req, res) {
-
-  var data = req.body;
-
-  if (data.encryptedData) {
-    try {
-      data = JSON.parse(decryptString(data.encryptedData));
-    } catch(ex) {
-      console.log('DECRYPT', 'ERROR', JSON.stringify(ex, null, 2));
-    }
-  }
-
-  var response = res.body || {};
-
-  // Validate data using a schema.
-  const v = new Validator();
-  const validationResult = v.validate(data, encryptSchema);
-
-  response.isValid = (validationResult.errors.length === 0);
-  if (response.isValid !== true) {
-    response.errors = validationResult.errors;
-    res.status(500).json(response);
-    return;
-  }
-
-  var keyString = data.merchantKey.substr(0, 16);
-
-  var plainText = `CardNo=${data.cardNo}&ExpYear=${data.expYear}&ExpMonth=${data.expMonth}&IDNo=${data.idNo}&CardPw=${data.cardPw}`;
-
-  var encrypted = Cipher.encrypt(keyString, encodeURI(plainText));
-
-  var hex = Buffer.from(encrypted, 'base64').toString('hex');
-  
-  response.encryptedData = hex;
-
-  res.json(response);
-}
-
-function encryptString(clearText) {
-  var KEY = Buffer.from(process.env.CRYPTO_KEY, 'base64')
-
-  var encryptedText = null;
-
-  var textBuffer = Buffer.from(clearText, 'utf-8');
-  var iv = Crypto.randomBytes(16);
-
-  var cipher = Crypto.createCipheriv('aes-256-cbc', KEY, iv);
-  var encryptedBuffer = cipher.update(textBuffer);
-  encryptedText = Buffer.concat([iv, encryptedBuffer, cipher.final()]).toString('base64');
-
-  return encryptedText;   
-}
-
-function decryptString(encryptedText) {
-  var KEY = Buffer.from(process.env.CRYPTO_KEY, 'base64')
-
-  var clearText = null;
-
-  var encryptedBlob = Buffer.from(encryptedText, 'base64');
-  var iv = encryptedBlob.slice(0, 16);
-  var textBuffer = encryptedBlob.toString('base64', 16);
-
-  var decipher = Crypto.createDecipheriv('aes-256-cbc', KEY, iv);
-  clearText = decipher.update(textBuffer,'base64','utf-8');
-  clearText += decipher.final('utf-8'); 
-   
-  return clearText;
-}
-
-var signSchema = {
+var azureSchema = {
   "id": "/Request",
   "type": "object",
   "properties": {
-      "MID": {"type": "string"},
-      "ediDate": {"type": "string"},
-      "moid": {"type": "string"},
-      "merchantKey": {"type": "string"}
+      "serverName": {"type": "string"},
+      "username": {"type": "string"},
+      "password": {"type": "string"},
+      "nameofDB": {"type": "string"},
+      "query": {"type": "string"}
   },
   "required": [
-      "MID", "moid", "merchantKey"
-  ]
-};
-
-var encryptSchema = {
-  "id": "/Request",
-  "type": "object",
-  "properties": {
-      "cardNo": {"type": "string"},
-      "expYear": {"type": "string"},
-      "expMonth": {"type": "string"},
-      "idNo": {"type": "string"},
-      "cardPw": {"type": "string"},
-      "merchantKey": {"type": "string"}
-  },
-  "required": [
-      "cardNo", "expYear", "expMonth", 
-      "idNo", "cardPw", "merchantKey"
-  ]
-};
-
-var consentSchema = {
-  "id": "/Request",
-  "type": "object",
-  "properties": {
-      "agreetype": {"type": "string"},
-      "fileext": {"type": "string"},
-      "filename": {"type": "string"},
-      "endpoint": {"type": "string"},
-      "base64data": {"type": "string"}
-  },
-  "required": [
-      "agreetype", "fileext", "filename", "endpoint", "base64data"
+      "serverName", "username", "password", "nameofDB", "query"
   ]
 };
