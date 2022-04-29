@@ -74,10 +74,10 @@ var azureSchema = {
       "serverName": {"type": "string"},
       "username": {"type": "string"},
       "password": {"type": "string"},
-      "nameofDB": {"type": "string"},
+      "nameOfDB": {"type": "string"},
       "query": {"type": "string"}
   },
   "required": [
-      "serverName", "username", "password", "nameofDB", "query"
+      "serverName", "username", "password", "nameOfDB", "query"
   ]
 };
