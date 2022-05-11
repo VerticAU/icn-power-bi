@@ -20,8 +20,8 @@ app
   // .get('/', (req, res) => res.render('pages/index'))
   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
   
-// POST Azure method route
-app.post('/azure', function(req, res) {
+// POST PostgreSQL method route
+app.post('/pg', function(req, res) {
   var data = req.body;
 
   var response = res.body || {};
@@ -38,12 +38,12 @@ app.post('/azure', function(req, res) {
   }
 
   const config = {
-      host: `${data.serverName}.postgres.database.azure.com`,
+      host: data.host,
       user: data.username,     
       password: data.password,
       database: data.nameOfDB,
-      port: 5432,
-      ssl: true
+      port: data.port || 5432,
+      ssl: data.ssl || true
   };
 
   const client = new pg.Client(config);
@@ -71,13 +71,13 @@ var azureSchema = {
   "id": "/Request",
   "type": "object",
   "properties": {
-      "serverName": {"type": "string"},
+      "host": {"type": "string"},
       "username": {"type": "string"},
       "password": {"type": "string"},
       "nameOfDB": {"type": "string"},
       "query": {"type": "string"}
   },
   "required": [
-      "serverName", "username", "password", "nameOfDB", "query"
+      "host", "username", "password", "nameOfDB", "query"
   ]
 };
