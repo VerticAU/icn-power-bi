@@ -3,7 +3,7 @@ dotenv.config();
 
 const express = require('express')
 const bodyParser = require('body-parser')
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5000 
 const Validator = require('jsonschema').Validator
 const pg = require('pg');
 
