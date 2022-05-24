@@ -61,7 +61,6 @@ app.post('/pg', function(req, res) {
             .catch(err => res.status(500).json({resultMsg: err}))
             .then(() => {
                 console.log('Finished execution, exiting now');
-                process.exit();
             });
       }
   });
